@@ -1,0 +1,107 @@
+%hw6_1
+clear;
+I=imread('E:\刘克勤\学习\大三下\数字图像处理\第6次作业\lena.bmp');
+J=imnoise(I,'gaussian',0,0.01);
+subplot(1,4,1);imshow(I);xlabel('原图像');
+subplot(1,4,2);imshow(J);xlabel('加入高斯噪声');
+%均值滤波
+k1=filter2(fspecial('average',3),J);
+k1=uint8(k1);
+subplot(1,4,3);imshow(k1);xlabel('3*3均值滤波');
+%中值滤波
+k2=medfilt2(J,[6,6]);
+subplot(1,4,4);imshow(k2);xlabel('6*6中值滤波');
+
+
+%hw6_2
+I=imread('E:\刘克勤\学习\大三下\数字图像处理\第6次作业\lena.bmp');
+J=imnoise(I,'salt & pepper',0.01);
+subplot(1,4,1);imshow(I);xlabel('原图像');
+subplot(1,4,2);imshow(J);xlabel('椒盐噪声');
+%均值滤波
+k1=filter2(fspecial('average',3),J);
+k1=uint8(k1);
+subplot(1,4,3);imshow(k1);xlabel('3*3均值滤波');
+%中值滤波
+k2=medfilt2(J,[6,6]);
+subplot(1,4,4);imshow(k2);xlabel('6*6中值滤波');
+%反谐波
+Q=1;
+J1=J;
+for i=4:509
+    for j=4:509
+        A=J(i-3:i+3,j-3:j+3);
+        A1=A.^(Q+1);
+        A2=A1./A;
+        s1=sum(A1(:));
+        s2=sum(A2(:));
+        J1(i,j)=(s1/s2);
+    end
+end
+figure,imshow(J1);
+
+
+
+%hw6_3
+clear;
+I=imread('E:\刘克勤\学习\大三下\数字图像处理\第6次作业\lena.bmp');
+[M1,N1]=size(I);
+f1=double(I);
+g1=fft2(f1);
+g1=fftshift(g1);
+a=0.015;
+b=0.015;
+T=1;
+m1=fix(M1/2);
+n1=fix(N1/2);
+for i=1:M1
+    for j=1:N1
+        a1=T/(pi*(i*a+j*b));
+        a2=sin(pi*(i*a+j*b))*exp(-complex(0,pi*(i*a+j*b)));
+        h1=a1*a2;
+        s1(i,j)=h1*g1(i,j);
+    end
+end
+s1=ifftshift(s1);
+x1=ifft2(s1);
+X1=(abs(x1));
+X1=X1*255/max(max(X1));
+X1=uint8(X1);
+subplot(1,5,2),imshow(X1);
+subplot(1,5,1),imshow(I);
+J=imnoise(X1,'gaussian',0,10^2/255^2);
+subplot(1,5,3),imshow(J);
+%维纳滤波
+[M1,N1]=size(J);
+f2=double(J);
+g2=fft2(f2);
+g2=fftshift(g2);
+m1=fix(M1/2);
+n1=fix(N1/2);
+K=0.0001;
+gama=0.0000000000015;
+for i=1:M1
+    for j=1:N1
+        d=sqrt((i-m1)^2+(j-n1)^2);
+        a1=T/(pi*(i*a+j*b));
+        a2=sin(pi*(i*a+j*b))*exp(-complex(0,pi*(i*a+j*b)));
+        h1=a1*a2;
+        h2=conj(h1)/((abs(h1)^2)+gama*(4*pi^2*d^2)^2);
+        s2(i,j)=(1/h1)*(abs(h1))^2/((abs(h1))^2+K)*g2(i,j);
+        s3(i,j)=h2*g2(i,j);
+    end
+end
+s2=ifftshift(s2);
+x2=ifft2(s2);
+X2=(abs(x2));
+X2=X2*255/max(max(X2));
+X2=uint8(X2);
+subplot(1,5,4),imshow(X2);
+
+s3=ifftshift(s3);
+x3=ifft2(s3);
+X3=(abs(x3));
+X3=X3*255/max(max(X3));
+X3=uint8(X3);
+subplot(1,5,5),imshow(X3);
+%subplot(1,5,5),imshow(uint8(abs(x2)));
